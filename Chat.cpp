@@ -72,7 +72,7 @@ void Chat::init()
     obj.insert(CMD, ONLINE);
     obj.insert(NAME, self.name);
 
-    send(obj, BROADCAST);
+    send(obj, "192.168.19.255");
 
     // 创建接收线程
     pthread_create(&tid, NULL, recv_thread, this);
@@ -99,6 +99,14 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
         QString name = obj.value(NAME).toString();
         addUser(ip, name);
     }
+    if(cmd == CHAT)
+    {
+        bool broadcast = obj.value(BROADCAST1).toBool();
+        QString content = obj.value(CONTENT).toString();
+        QString name = obj.value(NAME).toString();
+
+        emit this->sigNewContent(name, content, broadcast);
+    }
 }
 
 QString Chat::getSysName()
@@ -120,6 +128,26 @@ void Chat::send(const QJsonObject &obj, QString ip)
     addr.sin_port = htons(9988);
     addr.sin_addr.s_addr = inet_addr(ip.toUtf8().data());//0xffffffff;
     sendto(udp_fd, buf.data(), buf.size(), 0, (struct sockaddr*)&addr, sizeof(addr));
+}
+
+void Chat::sendMsg(QString content, QString ip, bool boardcast)
+{
+#if 0
+    ```
+    {
+        cmd: "chat",
+        broadcast: true,
+        content: "msg-body"
+    }
+    ```
+#endif
+    QJsonObject obj;
+    obj.insert(CMD, CHAT);
+    obj.insert(BROADCAST1, boardcast);
+    obj.insert(CONTENT, content);
+    obj.insert(NAME, self.name);
+    send(obj, ip);
+
 }
 
 void Chat::addUser(QString ip, QString name)

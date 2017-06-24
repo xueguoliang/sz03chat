@@ -47,12 +47,14 @@ public:
     QString getSysName();
     QString getSysIp();
     void send(const QJsonObject& obj, QString ip);
+    void sendMsg(QString content, QString ip, bool boardcast);
 
     void addUser(QString ip, QString name);
 
 
 signals:
     void sigNewUser(QString name, QString ip);
+    void sigNewContent(QString name, QString content, bool boardcast);
 
 public slots:
 };

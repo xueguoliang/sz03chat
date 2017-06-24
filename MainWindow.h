@@ -39,6 +39,8 @@ signals:
 
 public slots:
     void onNewUser(QString name, QString ip);
+    void onSend();
+    void onNewContent(QString name, QString content, bool boardcast);
 };
 
 #endif // MAINWINDOW_H

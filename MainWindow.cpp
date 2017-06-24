@@ -2,6 +2,10 @@
 
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
+    connect(&chat, SIGNAL(sigNewUser(QString,QString)),
+                this, SLOT(onNewUser(QString,QString)));
+    chat.init();
+
     QVBoxLayout* m = new QVBoxLayout(this);
 
     QSplitter* splitter = new QSplitter(this);
@@ -23,9 +27,6 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 
     vBox->setMargin(0);
     hBox->setMargin(0);
-
-    connect(&chat, SIGNAL(sigNewUser(QString,QString)),
-            this, SLOT(onNewUser(QString,QString)));
 }
 
 void MainWindow::onNewUser(QString name, QString ip)
@@ -38,7 +39,10 @@ void MainWindow::onNewUser(QString name, QString ip)
         // cccddd.indexOf("ab");
         if(item->text().indexOf(ip) != -1)
         {
+            qDebug() << "remove same user";
+
             userList->removeItemWidget(item);
+            userList->update();
             break;
         }
     }

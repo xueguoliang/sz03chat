@@ -125,7 +125,8 @@ QString Chat::getSysName()
     char buf[1024];
     memset(buf,0, sizeof(buf));
     FILE* fp = popen("whoami", "r");
-    fread(buf, 1, sizeof(buf), fp);
+    int ret = fread(buf, 1, sizeof(buf), fp);
+    buf[ret-1] = 0;
     fclose(fp);
     return QString(buf);
 #endif

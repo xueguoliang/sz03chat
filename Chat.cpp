@@ -6,6 +6,12 @@ Chat::Chat(QObject *parent) : QObject(parent)
 {
     ips = getSysIps();
     name = getSysName();
+
+#ifdef WIN32
+    // 如果是windows环境下，初始化socket运行环境
+    WSADATA wsaData;
+    WSAStartup( MAKEWORD( 2, 1 ), &wsaData );
+#endif
 }
 
 void *Chat::recv_thread(void *ptr)
@@ -46,6 +52,11 @@ void Chat::run()
 void Chat::init()
 {
     this->udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if(this->udp_fd < 0)
+    {
+        qDebug() << "error create socket";
+        exit(1);
+    }
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -61,8 +72,11 @@ void Chat::init()
 
     // 设置该socket，可以发送广播
     int arg = 1;
+#ifdef WIN32
+    setsockopt(udp_fd, SOL_SOCKET, SO_BROADCAST, (char*)&arg, sizeof(arg));
+#else
     setsockopt(udp_fd, SOL_SOCKET, SO_BROADCAST, &arg, sizeof(arg));
-
+#endif
     // 发送上线的广播
     /*
         {

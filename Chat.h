@@ -3,11 +3,17 @@
 
 #include <QObject>
 #include <QList>
+#ifdef WIN32
+#include <winsock2.h>
+#define socklen_t int
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 #include <pthread.h>
 #include <errno.h>
-#include <arpa/inet.h>
+
 #include <QDebug>
 
 #include "chatdef.h"

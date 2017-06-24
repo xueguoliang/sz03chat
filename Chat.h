@@ -47,7 +47,7 @@ class Chat : public QObject
 public:
     explicit Chat(QObject *parent = nullptr);
 
-    QString name;
+    QString account;
     QStringList ips;
     // ip is key
     QMap<QString, User*> others;

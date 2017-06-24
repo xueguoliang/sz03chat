@@ -5,7 +5,7 @@
 Chat::Chat(QObject *parent) : QObject(parent)
 {
     ips = getSysIps();
-    name = getSysName();
+    account = getSysName();
 
 #ifdef WIN32
     // 如果是windows环境下，初始化socket运行环境
@@ -86,7 +86,7 @@ void Chat::init()
     */
     QJsonObject obj;
     obj.insert(CMD, ONLINE);
-    obj.insert(NAME, name);
+    obj.insert(NAME, account);
 
     send(obj, "192.168.19.255");
 
@@ -199,7 +199,7 @@ void Chat::sendMsg(QString content, QString ip, bool boardcast)
     obj.insert(CMD, CHAT);
     obj.insert(BROADCAST1, boardcast);
     obj.insert(CONTENT, content);
-    obj.insert(NAME, name);
+    obj.insert(NAME, account);
     send(obj, ip);
 
 }

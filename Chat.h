@@ -31,7 +31,8 @@ class Chat : public QObject
 public:
     explicit Chat(QObject *parent = nullptr);
 
-    User self;
+    QString name;
+    QStringList ips;
     // ip is key
     QMap<QString, User*> others;
 
@@ -45,7 +46,7 @@ public:
     void handleMsg(const QJsonObject& obj, QString ip);
 
     QString getSysName();
-    QString getSysIp();
+    QStringList getSysIps();
     void send(const QJsonObject& obj, QString ip);
     void sendMsg(QString content, QString ip, bool boardcast);
 

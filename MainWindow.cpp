@@ -45,8 +45,9 @@ void MainWindow::onNewUser(QString name, QString ip)
         {
             qDebug() << "remove same user";
 
-            userList->removeItemWidget(item);
-            userList->update();
+          // userList->removeItemWidget(item);
+          //  userList->update();
+            delete userList->takeItem(i);
             break;
         }
     }

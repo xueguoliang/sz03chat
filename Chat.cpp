@@ -1,9 +1,11 @@
 #include "Chat.h"
-
+#include <QNetworkAddressEntry>
+#include <QNetworkInterface>
+#include <QProcessEnvironment>
 Chat::Chat(QObject *parent) : QObject(parent)
 {
-    self.ip = getSysIp();
-    self.name = getSysName();
+    ips = getSysIps();
+    name = getSysName();
 }
 
 void *Chat::recv_thread(void *ptr)
@@ -70,7 +72,7 @@ void Chat::init()
     */
     QJsonObject obj;
     obj.insert(CMD, ONLINE);
-    obj.insert(NAME, self.name);
+    obj.insert(NAME, name);
 
     send(obj, "192.168.19.255");
 
@@ -81,6 +83,12 @@ void Chat::init()
 // 运行在独立的线程上下文，Qt有规定，线程不能更新界面
 void Chat::handleMsg(const QJsonObject &obj, QString ip)
 {
+    if(ips.indexOf(ip)!=-1)
+    {
+        qDebug() << "自己发送数据给自己，丢弃";
+        return;
+    }
+
     QString cmd = obj.value(CMD).toString();
     if(cmd == ONLINE)
     {
@@ -91,7 +99,7 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
         // 回应这个用户
         QJsonObject resp;
         resp.insert(CMD, ONLINEACK);
-        resp.insert(NAME, self.name);
+        resp.insert(NAME, name);
         send(resp, ip);
     }
     if(cmd == ONLINEACK)
@@ -111,12 +119,43 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
 
 QString Chat::getSysName()
 {
-    return "hello";
+#ifdef WIN32
+    return QProcessEnvironment::systemEnvironment().value("USERNAME");
+#else
+    char buf[1024];
+    memset(buf,0, sizeof(buf));
+    FILE* fp = popen("whoami", "r");
+    fread(buf, 1, sizeof(buf), fp);
+    fclose(fp);
+    return QString(buf);
+#endif
 }
 
-QString Chat::getSysIp()
+QStringList Chat::getSysIps()
 {
-    return "";
+    QStringList ret;
+    QList<QNetworkAddressEntry> entrys;
+
+    QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+    foreach(QNetworkInterface inf, infs)
+    {
+        entrys.append(inf.addressEntries());
+    }
+    foreach(QNetworkAddressEntry entry, entrys)
+    {
+        if(entry.ip().toString().length() != 0)
+            ret.append(entry.ip().toString());
+
+#if 0
+        if(entry.broadcast().toString().isEmpty())
+            continue;
+        qWarning() << "ip and broadcast ip:"
+                   << entry.ip().toString()
+                   << entry.broadcast().toString();
+        items[ITEM_SHARE_ADDR]->addItem(entry.broadcast().toString());
+#endif
+    }
+    return ret;
 }
 
 void Chat::send(const QJsonObject &obj, QString ip)
@@ -145,7 +184,7 @@ void Chat::sendMsg(QString content, QString ip, bool boardcast)
     obj.insert(CMD, CHAT);
     obj.insert(BROADCAST1, boardcast);
     obj.insert(CONTENT, content);
-    obj.insert(NAME, self.name);
+    obj.insert(NAME, name);
     send(obj, ip);
 
 }

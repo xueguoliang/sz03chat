@@ -23,6 +23,10 @@
 #include <QJsonValue>
 #include <QJsonArray>
 
+#include <QNetworkAddressEntry>
+#include <QNetworkInterface>
+#include <QProcessEnvironment>
+
 #include <QMap>
 
 typedef struct
@@ -67,8 +71,11 @@ public:
 
     // 发送数据
     // send函数，两个线程都会调用
+    void create_socket(QString ip);
+    QString broadcast_ip;
     void send(const QJsonObject& obj, QString ip);
     void sendMsg(QString content, QString ip, bool boardcast);
+    void sendOnline();
 
 signals:
     // 信号是用于通知界面模块

@@ -1,5 +1,8 @@
 #include "MainWindow.h"
-
+#include <QDialog>
+#include <QLabel>
+#include <QComboBox>
+#include <QVariant>
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
     connect(&chat, SIGNAL(sigNewUser(QString,QString)),
@@ -31,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
     hBox->setMargin(0);
 
     connect(sendMsg, SIGNAL(clicked()), this, SLOT(onSend()));
+    connect(setup, SIGNAL(clicked()), this, SLOT(onSetup()));
 }
 
 void MainWindow::onNewUser(QString name, QString ip)
@@ -79,6 +83,50 @@ void MainWindow::onSend()
     // 整理界面
     msgInput->clear();
     msgShow->append("我说："+content);
+}
+
+void MainWindow::onSetup()
+{
+    QDialog dlg;
+    QComboBox* combo;
+    QHBoxLayout* lay = new QHBoxLayout(&dlg);
+    lay->addWidget(new QLabel("选择网卡"));
+    lay->addWidget(combo = new QComboBox());
+
+
+    {
+        QList<QNetworkAddressEntry> entrys;
+
+        QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+        foreach(QNetworkInterface inf, infs)
+        {
+            entrys.append(inf.addressEntries());
+        }
+        foreach(QNetworkAddressEntry entry, entrys)
+        {
+            if(entry.broadcast().toString().isEmpty())
+                continue;
+
+          //  entry.broadcast(); //广播地址
+          //  entry.ip(); // ip地址
+
+
+            combo->addItem(entry.ip().toString());
+            combo->setItemData(combo->count()-1, entry.broadcast().toString());
+        }
+    }
+
+
+
+    dlg.exec();
+
+    // 得到当前用户的选择，并且赋值给chat对象
+    chat.broadcast_ip = combo->itemData(combo->currentIndex()).toString();
+
+    chat.create_socket(combo->currentText());
+
+    // 重新发一次上线
+    chat.sendOnline();
 }
 
 void MainWindow::onNewContent(QString name, QString content, bool boardcast)

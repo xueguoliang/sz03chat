@@ -58,6 +58,7 @@ signals:
 
 public slots:
     void onSend();
+    void onSetup();
 
     void onNewUser(QString name, QString ip);
     void onNewContent(QString name, QString content, bool boardcast);

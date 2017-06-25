@@ -43,6 +43,7 @@ void Chat::recv_one_file(SendFileInfo *info)
     accept();
     read();
 #endif
+    qDebug() << "before accept";
     int newfd = accept(info->server_fd, NULL, NULL);
     if(newfd < 0)
         return;
@@ -390,6 +391,7 @@ void Chat::sendFile(QString path, QString ip)
 
     // 本端保存以下这个信息
     SendFileInfo* sfInfo = new SendFileInfo(this);
+    sfInfo->ip = ip;
 
     QJsonObject obj;
     obj.insert(CMD, SENDFILE);

@@ -8,4 +8,14 @@
 #define ONLINEACK "onlineack"
 #define CONTENT "content"
 #define CHAT "chat"
+#define SENDFILE "sendfile"
+#define FILESIZE "filesize"
+#define OK "ok"
+#define CANCEL "cancel"
+#define ID "id"
+#define SENDFILEACK "sendfileack"
+#define RESULT "result"
+#define PEERID "peerid"
+#define PORT "port"
+
 #endif // CHATDEF_H

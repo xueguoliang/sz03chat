@@ -15,7 +15,11 @@
 #include <errno.h>
 
 #include <QDebug>
-
+#include <stdlib.h>
+#include <unistd.h>
+#include <QThread>
+#include <QFileInfo>
+#include <QFile>
 #include "chatdef.h"
 
 #include <QJsonDocument>
@@ -29,11 +33,48 @@
 
 #include <QMap>
 
+class Chat;
+
 typedef struct
 {
     QString name;
     QString ip;
 } User;
+
+static int SendFileInfoId = 0;
+typedef struct SendFileInfo
+{
+    QString filepath_src;  // 源路径
+    QString filepath_dst;  // 目标路径
+    int id;
+    int peerid; // 这个传输信息，在对方的id是多少
+    QString ip;
+    int total;
+    int transSize; // 显示百分比
+    bool started;
+
+    Chat* chat;
+    int server_fd; // 服务器的socket
+    int port;
+
+
+    ~SendFileInfo()
+    {
+        if(server_fd != -1)
+            close(server_fd);
+    }
+
+    SendFileInfo(Chat* ch)
+    {
+        server_fd = -1;
+        port = -1;
+        chat = ch;
+        peerid = -1;
+        started = false;
+        transSize = 0;
+        id = SendFileInfoId++; // 构造函数不是线程安全的，所以只有主线程才可以创建这个对象
+    }
+} SendFileInfo;
 
 /*
     负责聊天业务逻辑和数据结构
@@ -56,8 +97,17 @@ public:
     // ip is key
     QMap<QString, User*> others;
 
+  //  QMap<int, SendFileInfo*> sends; // 发送的文件信息
+  //  QMap<int, SendFileInfo*> recvs; // 接收的文件信息
+    QMap<int, SendFileInfo*> transInfo;
     int udp_fd;
     pthread_t tid;
+
+    static void* recv_file_thread(void* ptr);
+    static void* send_file_thread(void* ptr);
+
+    void recv_one_file(SendFileInfo* info);
+    void send_one_file(SendFileInfo* info);
 
     static void* recv_thread(void* ptr);
     void run();
@@ -76,13 +126,21 @@ public:
     void send(const QJsonObject& obj, QString ip);
     void sendMsg(QString content, QString ip);
     void sendOnline();
+    void sendFile(QString path, QString ip);
+    void ackFileTransRequest(QString filename, int filesize, int peerid, QString ip, bool ok, QString dstFilename="");
+
 
 signals:
     // 信号是用于通知界面模块
     void sigNewUser(QString name, QString ip);
     void sigNewContent(QString name, QString content, bool boardcast);
+    void sigTransFileRequest(QString filename, int filesize, int peerid, QString ip);
+    void sigAckTransFile(int id, int peerid, int port);
+    void sigProgress(SendFileInfo* info);
+    void sigTransFinish(SendFileInfo* info);
 
 public slots:
+    void onAcktransFile(int id, int peerid, int port);
 };
 
 #endif // CHAT_H

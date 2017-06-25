@@ -55,15 +55,23 @@ public:
     QTextEdit* msgInput;
     QPushButton* sendMsg;
     QPushButton* setup;
+    QPushButton* sendFile;
+
+    QString getSelectIp();
 
 signals:
 
 public slots:
     void onSend();
     void onSetup();
+    void onSendFile();
 
     void onNewUser(QString name, QString ip);
     void onNewContent(QString name, QString content, bool boardcast);
+    void onTransFileRequest(QString filename, int filesize, int peerid, QString ip);
+    void onTransProgress(SendFileInfo* info);
+    void onTransFinish(SendFileInfo* info);
+
 };
 
 #endif // MAINWINDOW_H

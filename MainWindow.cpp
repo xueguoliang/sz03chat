@@ -35,6 +35,15 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 
     connect(sendMsg, SIGNAL(clicked()), this, SLOT(onSend()));
     connect(setup, SIGNAL(clicked()), this, SLOT(onSetup()));
+
+    initUserList();
+}
+
+void MainWindow::initUserList()
+{
+    this->userList->clear();
+
+    this->userList->addItem("所有人@"+chat.broadcast_ip);
 }
 
 void MainWindow::onNewUser(QString name, QString ip)
@@ -78,7 +87,7 @@ void MainWindow::onSend()
     if(content.length() == 0)
         return;
 
-    chat.sendMsg(content, ip, false);
+    chat.sendMsg(content, ip);
 
     // 整理界面
     msgInput->clear();
@@ -127,9 +136,15 @@ void MainWindow::onSetup()
 
     // 重新发一次上线
     chat.sendOnline();
+
+    // userList
+    initUserList();
 }
 
 void MainWindow::onNewContent(QString name, QString content, bool boardcast)
 {
-    msgShow->append(name + "说: "+ content);
+    if(boardcast)
+        msgShow->append(name + "对大家说："+ content);
+    else
+        msgShow->append(name + "对我说：" + content);
 }

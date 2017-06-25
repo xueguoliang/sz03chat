@@ -185,7 +185,7 @@ void Chat::send(const QJsonObject &obj, QString ip)
     sendto(udp_fd, buf.data(), buf.size(), 0, (struct sockaddr*)&addr, sizeof(addr));
 }
 
-void Chat::sendMsg(QString content, QString ip, bool boardcast)
+void Chat::sendMsg(QString content, QString ip)
 {
 #if 0
     ```
@@ -198,7 +198,8 @@ void Chat::sendMsg(QString content, QString ip, bool boardcast)
 #endif
     QJsonObject obj;
     obj.insert(CMD, CHAT);
-    obj.insert(BROADCAST1, boardcast);
+  //  obj.insert(BROADCAST1, boardcast);
+    obj.insert(BROADCAST1, ip.indexOf("255")!=-1);
     obj.insert(CONTENT, content);
     obj.insert(NAME, account);
     send(obj, ip);

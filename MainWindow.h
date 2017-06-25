@@ -44,6 +44,8 @@ class MainWindow : public QWidget
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
+    void initUserList();
+
     Chat chat;
 
     // left

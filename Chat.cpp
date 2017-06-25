@@ -47,6 +47,8 @@ void Chat::recv_one_file(SendFileInfo *info)
     if(newfd < 0)
         return;
 
+    qDebug() << "recv connect " << newfd;
+
    QFile file(info->filepath_dst);
    file.open(QFile::WriteOnly);
     while(info->transSize < info->total)
@@ -68,6 +70,7 @@ void Chat::recv_one_file(SendFileInfo *info)
             break;
     }
 
+    qDebug() << "recv complete";
     file.close();
     close(newfd);
 
@@ -91,7 +94,14 @@ void Chat::send_one_file(SendFileInfo *info)
     addr.sin_port = htons(info->port);
     addr.sin_addr.s_addr = inet_addr(info->ip.toUtf8().data());
 
-    ::connect(fd, (struct sockaddr*)&addr, sizeof(addr));
+    if(::connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == 0)
+    {
+        qDebug() << "connect file trans ok";
+    }
+    else
+    {
+        qDebug() << "connect filetrans error";
+    }
 
     QFile file(info->filepath_src);
     file.open(QFile::ReadOnly);
@@ -103,9 +113,12 @@ void Chat::send_one_file(SendFileInfo *info)
             break;
 
         info->transSize += buf.size();
+
         emit sigProgress(info);
         write(fd, buf.data(), buf.size());
     }
+
+    qDebug() << "trans complete";
 
     close(fd);
     file.close();
@@ -206,6 +219,9 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
 
        //  SendFileInfo* info = new SendFileInfo; // 在子进程中，不能创建SendFileInfo对象
         emit this->sigTransFileRequest(filename, filesize, peerid, ip);
+
+        qDebug() << "recv sendfile request" << filename << filesize << peerid;
+
     }
     if(cmd == SENDFILEACK)
     {
@@ -220,13 +236,18 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
 #endif
         if(ok == OK)
         {
+
             // 创建发送线程
             int id = obj.value(ID).toInt();
          //   sends[id];
             int peerid = obj.value(PEERID).toInt();
             int port = obj.value(PORT).toInt();
 
+            qDebug() << "recv sendfileack" << id << peerid << port;
+
             emit sigAckTransFile(id, peerid, port);
+
+
         }
         else
         {
@@ -391,6 +412,8 @@ void Chat::ackFileTransRequest(QString filename, int filesize,
 {
     if(ok)
     {
+        qDebug() << "sendfile request ack ok:" << ip <<filesize << peerid << dstFilename;
+
         SendFileInfo* info = new SendFileInfo(this);
         info->filepath_src = filename;
         info->filepath_dst = dstFilename;// TODO

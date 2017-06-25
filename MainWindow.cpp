@@ -150,7 +150,7 @@ void MainWindow::onSetup()
     // 得到当前用户的选择，并且赋值给chat对象
     chat.broadcast_ip = combo->itemData(combo->currentIndex()).toString();
 
-    chat.create_socket(combo->currentText());
+ //   chat.create_socket(combo->currentText());
 
     // 重新发一次上线
     chat.sendOnline();

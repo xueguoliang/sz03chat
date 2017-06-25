@@ -80,7 +80,7 @@ void Chat::handleMsg(const QJsonObject &obj, QString ip)
         // 回应这个用户
         QJsonObject resp;
         resp.insert(CMD, ONLINEACK);
-        resp.insert(NAME, name);
+        resp.insert(NAME, this->account);
         send(resp, ip);
     }
     if(cmd == ONLINEACK)
